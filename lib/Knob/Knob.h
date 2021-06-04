@@ -9,9 +9,12 @@ class Knob {
    private:
     ConsumerKeycode _incKey = MEDIA_VOLUME_UP;
     ConsumerKeycode _decKey = MEDIA_VOLUME_DOWN;
+   
+    int _oldPosition = 0;
+    Encoder _enc;
 
    public:
-    Knob(int pinA, int pinB);
+    Knob(uint8_t pinA, uint8_t pinB);
     void update();
 };
 
