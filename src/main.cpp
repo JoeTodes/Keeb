@@ -13,16 +13,12 @@ void setup() {
 
 void loop() {
     long newPosition = myEnc.read();
-    Serial.print(newPosition);
-    Serial.print("  ");
     int ticks = (newPosition - oldPosition) / 4;
-    Serial.print(ticks);
-    Serial.print("  ");
+
     for (int i = 0; i < abs(ticks); i++) {
         Consumer.write(ticks > 0 ? MEDIA_VOLUME_UP : MEDIA_VOLUME_DOWN);
         oldPosition += ticks * 4;
     }
-    Serial.print(oldPosition);
-    Serial.println("  ");
+
     delay(10);
 }
