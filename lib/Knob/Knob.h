@@ -7,9 +7,9 @@
 
 typedef void (*KnobCallback)();
 enum KnobMode : int8_t {
-    KEYBOARDKEY,
-    MEDIAKEY,
-    MACRO
+    KNOB_KEYBOARDKEY,
+    KNOB_MEDIAKEY,
+    KNOB_MACRO
 };
 class Knob {
    private:
