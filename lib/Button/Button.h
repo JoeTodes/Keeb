@@ -26,7 +26,7 @@ private:
   KeyboardKeycode _key;
   ConsumerKeycode _consumerKey;
   ButtonMode _mode;
-
+  void debounce(int pin);
   bool isTimeToUpdate();
 
 public:

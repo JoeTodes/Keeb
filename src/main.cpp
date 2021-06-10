@@ -2,14 +2,22 @@
 #include <Button.h>
 #include <Encoder.h>
 #include <HID-Project.h>
+#include <Key.h>
 #include <Knob.h>
+#include <Matrix.h>
+#include <Slider.h>
+#include <vector>
 
+// define macro functions like this
+// Use Keyboard.press and Keyboard.release for individual keystrokes
+// and Keyboard.print to type multiple characters at once.
+// Delays are often needed to wait for windows and menus to open
 void
 openCalc()
 {
   Keyboard.press(KEY_LEFT_WINDOWS);
   Keyboard.release(KEY_LEFT_WINDOWS);
-  delay(1000);
+  delay(700);
   Keyboard.print("calc");
   delay(100);
   Keyboard.press(KEY_ENTER);
@@ -18,48 +26,66 @@ openCalc()
 
 // Use this for buttons wired individually to Arduino pins
 Button buttons[] = {
-  // Button(4, openCalc),
+  // Button(6, KEY_0),
+  // Button(7, KEY_1),
   // Button(5, KEY_UNDO),
   // Button(6, MEDIA_PLAY_PAUSE),
 };
 
-// Use this for buttons wired in a MATRIX
-// Assumes diodes go from switch to COLUMN lines
-// Use an empty button ( Button() ) for gaps in rows
-Button row1[] = { Button(openCalc), Button(KEY_A), Button() };
-Button row2[] = { Button(KEY_0), Button(), Button(MEDIA_PLAY_PAUSE) };
-Button* rows[] = { row1, row2 };
-int colCount = sizeof(rows[0]) / sizeof(rows[0][0]);
-int rowCount = sizeof(rows) / sizeof(rows[0]);
-int rowPins[] = { 7, 8 };      // in the same order as declared above
-int colPins[] = { 9, 10, 11 }; // in the same order as in the rows
 /*
-    ie. pin 9 connects to the diodes from the buttons for openCalc and KEY_0,
-    pin 11 connects to the diode from the Play/Pause button
+Use this for buttons wired in a MATRIX
+Assumes diodes go from switch to COLUMN lines
+For example:
+                       pin8                pin9
+          _________      │    _______        │
+         │OpenCal()│—►|——┤   │  "a"  │—►|————┤
+          ---------      │    -------        │
+pin5  ————————┴——————————│———————┘           │
+                         │    _______        │
+                         │   │  "5"  │—►|————┤
+                         │    -------        │
+pin5  ———————————————————│———————┘           │
+          _________      │    _________      │
+         │ Vol Up  │—►|——┘   │ VolDown │—►|——┘
+          ---------           ---------
+pin5  ————————┴——————————————————┘
+
+Use an empty button ( Key() ) for gaps in rows
 */
 
+// List all keys one row after another
+std::vector<Key> keys = { Key(openCalc), Key(),      Key(MEDIA_VOLUME_UP),
+                          Key(KEY_A),    Key(KEY_5), Key(MEDIA_VOLUME_DOWN) };
+std::vector<int> rowPins = { 5, 6, 7 }; // in the same order as declared above
+std::vector<int> colPins = { 8, 9 };    // in the same order as in the rows
+Matrix matrix = Matrix(keys, colPins, rowPins);
+
+// Encoders work best if using pins 0,1,2,3,4, or 7
+// Middle pin goes to GND
 Knob knobs[] = {
   // Knob(0, 1, MEDIA_VOLUME_UP, MEDIA_VOLUME_DOWN),
   // Knob(2, 3, openCalc, openCalc)
 };
 
+// For potentiometers and other analog inputs
+// Allowed pins are 4,6,8,9,10,18,19,20,21
+// Default behaviour is as volume control
+Slider sliders[] = {
+  Slider(10),
+};
+
 void
 setup()
 {
-  Serial.begin(9600);
-  for (int i = 0; i < rowCount; i++) {
-    pinMode(rowPins[i], INPUT);
-  }
-  for (int i = 0; i < colCount; i++) {
-    pinMode(colPins[i], INPUT);
-  }
-
+  matrix.setup();
   Consumer.begin();
 }
 
 void
 loop()
 {
+  delay(10);
+  matrix.update();
   for (size_t i = 0; i < sizeof(knobs) / sizeof(knobs[0]); i++) {
     knobs[i].update();
   }
@@ -68,20 +94,7 @@ loop()
     buttons[i].update();
   }
 
-  for (int c = 0; c < colCount; c++) {
-    int colPin = colPins[c];
-    pinMode(colPin, OUTPUT);
-    digitalWrite(colPin, LOW);
-
-    for (int r = 0; r < rowCount; r++) {
-      Button b = rows[r][c];
-      if (b.getMode() != BUTTON_NULL) {
-        int rowPin = rowPins[r];
-        pinMode(rowPin, INPUT_PULLUP);
-        b.update();
-        pinMode(rowPin, INPUT);
-      }
-    }
-    pinMode(colPin, INPUT);
+  for (size_t i = 0; i < sizeof(sliders) / sizeof(sliders[0]); i++) {
+    sliders[i].update();
   }
 }

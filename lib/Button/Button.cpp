@@ -46,22 +46,22 @@ Button::Button(ButtonCallback macro)
 }
 
 void
-Button::update(int pin)
+Button::debounce(int pin)
 {
   int btnState = digitalRead(pin);
-  if (btnState == _lastStateBtn) {
-    _lastChangeTime = millis();
-  } else if (millis() - _lastChangeTime > _delay) {
-    _lastStateBtn = btnState;
-    _lastChangeTime = millis();
-
-    if (_lastStateBtn == LOW) {
-      switch (_mode) {
+  if (btnState == this->_lastStateBtn) {
+    this->_lastChangeTime = millis();
+  } else if (millis() - this->_lastChangeTime > this->_delay) {
+    this->_lastStateBtn = btnState;
+    this->_lastChangeTime = millis();
+    if (this->_lastStateBtn == LOW) {
+      Serial.println("button Pressed");
+      switch (this->_mode) {
         case BUTTON_MEDIAKEY:
-          Consumer.write(_consumerKey);
+          Consumer.write(this->_consumerKey);
           break;
         case BUTTON_KEYBOARDKEY:
-          Keyboard.write(_key);
+          Keyboard.write(this->_key);
           break;
         case BUTTON_MACRO:
           this->_callback();
@@ -71,6 +71,12 @@ Button::update(int pin)
       }
     }
   }
+}
+
+void
+Button::update(int pin)
+{
+  this->debounce(pin);
 }
 
 void
